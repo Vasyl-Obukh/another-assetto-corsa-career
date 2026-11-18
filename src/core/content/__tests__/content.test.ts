@@ -8,11 +8,9 @@ import {
   carBadge,
   contentPath,
   contentWatchDirs,
-  fileExists,
   isInsideContentDir,
   rescanContent,
   scanCars,
-  scanContent,
   scanTracks,
   scanWeather,
   scanWeatherControllers,
@@ -464,24 +462,6 @@ describe('core/content', () => {
     });
   });
 
-  describe('scanContent', () => {
-    it('derives the AC root from the content directory', async () => {
-      listDirsMock.mockResolvedValue([]);
-
-      await scanContent('D:\\ac\\content');
-
-      expect(listDirsMock).toHaveBeenCalledWith(expect.stringContaining('D:\\ac\\extension'));
-    });
-
-    it('returns all four collections plus anything broken', async () => {
-      listDirsMock.mockResolvedValue([]);
-
-      await expect(scanContent('D:\\ac\\content')).resolves.toEqual({
-        cars: [], tracks: [], weather: [], controllers: [], issues: [],
-      });
-    });
-  });
-
   describe('skinPreview', () => {
     it('builds the path to a skin preview image', () => {
       expect(skinPreview('D:\\ac\\content', 'car_a', 'red'))
@@ -691,18 +671,6 @@ describe('core/content', () => {
     it('refuses the content directory itself', () => {
       expect(isInsideContentDir('D:\\ac\\content', 'D:\\ac\\content')).toBe(false);
       expect(isInsideContentDir('D:\\ac\\content', 'D:\\ac\\content\\')).toBe(false);
-    });
-  });
-
-  describe('fileExists', () => {
-    it('is true when the path is there', async () => {
-      statMock.mockResolvedValue({} as never);
-      await expect(fileExists('D:\\ac')).resolves.toBe(true);
-    });
-
-    it('is false rather than throwing when it is not', async () => {
-      statMock.mockRejectedValue(new Error('ENOENT'));
-      await expect(fileExists('D:\\nope')).resolves.toBe(false);
     });
   });
 });

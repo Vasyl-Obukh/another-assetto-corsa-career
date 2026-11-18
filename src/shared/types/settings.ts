@@ -216,7 +216,7 @@ export interface Settings {
    *
    * A property of the person playing rather than of a race, for the same reason
    * `driverName` is: nobody wants to re-pick ABS for every race. A race that
-   * names one of these keeps it, which is what lets a spike pin them all.
+   * names one of these keeps it.
    */
   drivingAids: DrivingAids;
   /**

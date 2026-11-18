@@ -1,13 +1,12 @@
-// Where the planner apps keep their files, how they number weathers, and the
-// probe plans `npm run weather -- plan` drives. Every path and number here was
-// read off a real install rather than taken from documentation.
+// Where the planner apps keep their files and how they number weathers. Every
+// path and number here was read off a real install rather than taken from
+// documentation.
 
 import path from 'node:path';
 
 import {
-  HOURS_PER_DAY, MINUTES_PER_HOUR, SECONDS_PER_MINUTE, WeatherType,
+  HOURS_PER_DAY, MINUTES_PER_HOUR, SECONDS_PER_MINUTE,
 } from '../../shared/constants/index.ts';
-import type { WeatherPlan } from '../../shared/types/index.ts';
 
 /**
  * PURE Planner's folder, under the AC root.
@@ -215,43 +214,4 @@ export const SOL_STEP_DEFAULTS = {
   windDirection: 0,
   rain: 0,
   fog: 0,
-};
-
-/**
- * The probe plans the spike drives, and what each one is asking.
- */
-export const PROBE_PLANS: Record<string, WeatherPlan> = {
-  // Does the planner load our file at all, does it start with the race, and
-  // does the weather actually change part way through a session?
-  evolve: {
-    loop: false,
-    steps: [
-      { weather: WeatherType.CLEAR, minutes: 3, ambient: 22 },
-      { weather: WeatherType.HEAVY_RAIN, minutes: 3, rain: 0.8, ambient: 14 },
-      { weather: WeatherType.CLEAR, minutes: 3, ambient: 22 },
-    ],
-  },
-  // Does the CM slot really defer to race.ini? Driven with a race asking for
-  // Fog: if the opening five minutes are foggy, it does.
-  defer: {
-    loop: false,
-    steps: [
-      { weather: 'race', minutes: 5 },
-      { weather: WeatherType.HEAVY_RAIN, minutes: 5, rain: 0.8 },
-    ],
-  },
-  // Does a plan keep a shortened race's clock? Both planners set the game's
-  // clock to the plan's multiplier, so at 48 the clock reaches 20:00 two and a
-  // half minutes after an 18:00 start, while the rain still arrives three real
-  // minutes in. Driven with spikes/time-multiplier-plan, which starts at 18:00.
-  clock: {
-    loop: false,
-    timeMultiplier: 48,
-    startHour: 18,
-    steps: [
-      { weather: WeatherType.CLEAR, minutes: 3, ambient: 22 },
-      { weather: WeatherType.HEAVY_RAIN, minutes: 3, rain: 0.8, ambient: 14 },
-      { weather: WeatherType.CLEAR, minutes: 3, ambient: 22 },
-    ],
-  },
 };

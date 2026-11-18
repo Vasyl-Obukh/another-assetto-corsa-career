@@ -247,7 +247,7 @@ describe('renderer/i18n/utils', () => {
 
     // The reason type is what the scan produces. A member added to it before a
     // catalogue catches up must still read as a sentence, not as a bare code.
-    it('falls back to the English table the CLI prints', () => {
+    it('falls back to the shared English table', () => {
       const t = translator({});
 
       for (const reason of Object.keys(CONTENT_ISSUE_REASONS) as ContentIssueReason[]) {

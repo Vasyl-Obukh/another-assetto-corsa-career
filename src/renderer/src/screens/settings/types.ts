@@ -2,7 +2,7 @@ import type { ParseKeys } from 'i18next';
 import type { LucideIcon } from 'lucide-react';
 
 import type { ASSIST_MODES } from './constants.ts';
-import type { CmFlag, DrivingAidNumber } from '../../../../shared/types';
+import type { DrivingAidNumber } from '../../../../shared/types';
 
 /**
  * Something a weather system can or cannot do, as its card lists them.
@@ -74,15 +74,6 @@ export interface SettingsTab {
  */
 export type AidMode = Exclude<DrivingAidNumber, 'stabilityControl' | 'damage'>;
 
-/**
- * A Content Manager flag the settings screen may offer.
- *
- * Race INI test mode is excluded rather than merely left out of the list: it
- * stops Content Manager launching anything, so it is a debugging tool and lives
- * in `npm run testmode` alone. Excluding it here is what lets the screen's
- * translations drop its wording too.
- */
-export type SettingsCmFlag = Exclude<CmFlag, '--enable-race-ini-test-mode'>;
 
 /**
  * One of Assetto Corsa's three modes for an aid: off, as the car has it,

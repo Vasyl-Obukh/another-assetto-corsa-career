@@ -30,8 +30,8 @@ export default defineConfig([
       },
     },
     rules: {
-      // This is a CLI; printing is the point.
-      'no-console': 'off',
+      // Main reports what it cannot recover from; nothing else prints.
+      'no-console': ['error', { allow: ['warn', 'error'] }],
 
       // AC's INI keys are literally named __CM_WEATHER_TYPE, __TRACK_GEOTAG_LAT
       // and so on. Renaming them is not an option.
@@ -44,7 +44,7 @@ export default defineConfig([
 
       // Nothing here ships as a runtime dependency: the renderer's imports are
       // bundled into it, and electron is provided by the runtime rather than
-      // installed alongside the app. src/core, src/shared and spike.ts are
+      // installed alongside the app. src/core and src/shared are
       // deliberately left off the list - they stay dependency-free and
       // Node-runnable.
       'import-x/no-extraneous-dependencies': ['error', {

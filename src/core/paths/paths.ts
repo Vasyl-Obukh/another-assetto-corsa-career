@@ -16,11 +16,11 @@ import {
   REG_USER_SHELL_FOLDERS,
 } from './constants.ts';
 import {
-  exists, listCandidates, pick, probeError, regQuery,
+  exists, listCandidates, pick, regQuery,
 } from './utils.ts';
-import { AC_ROOT_MARKER, AppError, appErrorInfo } from '../../shared/errors/index.ts';
+import { AC_ROOT_MARKER, appErrorInfo } from '../../shared/errors/index.ts';
 import type {
-  AcPaths, PathCandidate, PathOverrides, PathProbe, PathsReport,
+  PathCandidate, PathOverrides, PathProbe, PathsReport,
 } from '../../shared/types/index.ts';
 
 /**
@@ -153,63 +153,4 @@ export const probePaths = async (overrides: PathOverrides = {}): Promise<PathsRe
   return {
     contentManager, acRoot, documents, derived,
   };
-};
-
-/**
- * Resolves every path at once, insisting on all three. Every CLI command starts
- * here.
- * @param overrides Paths the user has set by hand
- * @returns Every path the app needs
- * @throws When any of the three could not be found
- */
-export const resolvePaths = async (overrides: PathOverrides = {}): Promise<AcPaths> => {
-  const report = await probePaths(overrides);
-
-  if (!report.derived) {
-    const failed = [report.contentManager, report.acRoot, report.documents]
-      .find((probe) => !probe.exists);
-    throw failed ? probeError(failed) : new AppError('paths.unresolved');
-  }
-
-  return report.derived;
-};
-
-/**
- * Resolves the path to Content Manager.exe.
- * @param overrides Paths the user has set by hand
- * @returns The full path to the executable
- * @throws When CM could not be found
- */
-export const findContentManager = async (overrides: PathOverrides = {}): Promise<string> => {
-  const probe = await probeContentManager(overrides);
-  if (!probe.exists || !probe.value) throw probeError(probe);
-  return probe.value;
-};
-
-/**
- * Resolves the Assetto Corsa install root.
- * @param cmPath Where CM was found, whose folder is a strong candidate
- * @param overrides Paths the user has set by hand
- * @returns The install root
- * @throws When the root could not be found
- */
-export const findAcRoot = async (
-  cmPath?: string,
-  overrides: PathOverrides = {},
-): Promise<string> => {
-  const probe = await probeAcRoot(overrides, cmPath);
-  if (!probe.exists || !probe.value) throw probeError(probe);
-  return probe.value;
-};
-
-/**
- * Resolves the Documents\Assetto Corsa folder.
- * @param overrides Paths the user has set by hand
- * @returns The folder path
- * @throws When the folder could not be found
- */
-export const findAcDocuments = async (overrides: PathOverrides = {}): Promise<string> => {
-  const probe = await probeAcDocuments(overrides);
-  if (!probe.exists || !probe.value) throw probeError(probe);
-  return probe.value;
 };

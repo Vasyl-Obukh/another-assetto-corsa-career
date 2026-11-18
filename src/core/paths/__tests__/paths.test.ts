@@ -3,14 +3,10 @@ import {
 } from '@jest/globals';
 
 import {
-  findAcDocuments,
-  findAcRoot,
-  findContentManager,
   probeAcDocuments,
   probeAcRoot,
   probeContentManager,
   probePaths,
-  resolvePaths,
 } from '../paths.ts';
 import { exists, regQuery } from '../utils.ts';
 
@@ -163,57 +159,6 @@ describe('core/paths', () => {
 
     it('never throws, however little it finds', async () => {
       await expect(probePaths()).resolves.toBeDefined();
-    });
-  });
-
-  describe('resolvePaths', () => {
-    it('returns the derived paths when everything is found', async () => {
-      regQueryMock.mockImplementation(async (key) => (key.includes('acmanager') ? `"${CM}" "%1"` : 'E:\\Docs'));
-      existsMock.mockResolvedValue(true);
-
-      await expect(resolvePaths()).resolves.toMatchObject({ acRoot: AC_ROOT });
-    });
-
-    it('throws with the first failing probe\'s reason', async () => {
-      await expect(resolvePaths()).rejects.toThrow('acmanager:// is not registered');
-    });
-  });
-
-  describe('findContentManager', () => {
-    it('returns the path when it is found', async () => {
-      regQueryMock.mockResolvedValue(`"${CM}" "%1"`);
-      existsMock.mockResolvedValue(true);
-
-      await expect(findContentManager()).resolves.toBe(CM);
-    });
-
-    it('throws the probe\'s explanation when it is not', async () => {
-      await expect(findContentManager()).rejects.toThrow('acmanager:// is not registered');
-    });
-  });
-
-  describe('findAcRoot', () => {
-    it('returns the root when it is found', async () => {
-      existsMock.mockImplementation(async (target) => target.endsWith('content\\cars'));
-
-      await expect(findAcRoot(CM)).resolves.toBe(AC_ROOT);
-    });
-
-    it('throws the probe\'s explanation when it is not', async () => {
-      await expect(findAcRoot(CM)).rejects.toThrow('No content\\cars folder');
-    });
-  });
-
-  describe('findAcDocuments', () => {
-    it('returns the folder when it is found', async () => {
-      regQueryMock.mockResolvedValue('E:\\Docs');
-      existsMock.mockResolvedValue(true);
-
-      await expect(findAcDocuments()).resolves.toBe('E:\\Docs\\Assetto Corsa');
-    });
-
-    it('throws the probe\'s explanation when it is not', async () => {
-      await expect(findAcDocuments()).rejects.toThrow('Not found at any of');
     });
   });
 });

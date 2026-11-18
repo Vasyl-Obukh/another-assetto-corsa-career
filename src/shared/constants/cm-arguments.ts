@@ -12,14 +12,4 @@ import type { CmFlag } from '../types/cm-arguments.ts';
 export const CM_FLAGS: readonly CmFlag[] = [
   '--skip-all-results',
   '--hide-race-cancel-button',
-  '--enable-race-ini-test-mode',
 ];
-
-/**
- * The flag that makes Content Manager write `race.ini` instead of racing.
- *
- * Named because it is the one flag with a command of its own: it stops CM
- * launching anything, so it is set through `npm run testmode -- on|off` and is
- * deliberately absent from the app's own UI.
- */
-export const RACE_INI_TEST_MODE = '--enable-race-ini-test-mode';

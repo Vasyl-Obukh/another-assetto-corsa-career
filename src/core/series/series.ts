@@ -54,7 +54,6 @@ import type {
   FieldSeat,
   RaceDefinition,
   RoundAvailability,
-  RoundForecast,
   SeriesAvailability,
   WeatherOffer,
 } from '../../shared/types/index.ts';
@@ -71,8 +70,8 @@ import {
   applyForecast, defaultWeatherOffer, forecastRound, offerForecast,
 } from '../weather-forecast/index.ts';
 
-// Re-exported so the shipped library and the CLI keep reaching for it here,
-// beside the validator that enforces it.
+// Re-exported so the shipped library keeps reaching for it here, beside the
+// validator that enforces it.
 export { SERIES_FORMAT_VERSION } from '../../shared/constants/index.ts';
 export {
   baseRaceId, classOffset, climateOf, eligibleCars, hemisphereOf, nationOf, raceWeekdayOf, requirementsOf, roundOf,
@@ -85,8 +84,8 @@ export { formatOf } from '../../shared/utils/event-format/index.ts';
  *
  * Structural only, and deliberately independent of installed content: a
  * championship can be wrong without anything being uninstalled, and the two
- * questions want separate answers. Shaped like validateRace, so the CLI and the
- * UI report both the same way.
+ * questions want separate answers. Shaped like validateRace, so both are
+ * reported the same way.
  *
  * The class catalogue is the one thing outside the document it reads, because
  * a spec may be one the user made - and a championship naming a spec this
@@ -342,27 +341,6 @@ export const seriesAvailability = (
     requires: requirementsOf(series, catalogue),
   };
 };
-
-/**
- * Every round's forecast, for a championship that generates its weather.
- *
- * The same draw roundRace writes onto the sessions, so what the calendar shows
- * is what the round races in. A round whose format does not resolve has no
- * sessions to forecast and is left out, which validateSeries already reports.
- * @param series The championship
- * @param offer What the install and settings can race in
- * @returns One forecast per round, empty when the weather is not generated
- */
-export const seriesForecast = (series: Championship, offer: WeatherOffer): RoundForecast[] => (
-  series.rounds.flatMap((round) => {
-    const climate = climateOf(series, round);
-    const format = formatOf(series, round);
-
-    return climate !== null && format !== null
-      ? [forecastRound(series.id, round, format, climate, offer, {}, rainAllowed(series))]
-      : [];
-  })
-);
 
 /**
  * Draws a season's field: every AI seat's car, livery and own offsets, once.

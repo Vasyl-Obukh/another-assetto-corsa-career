@@ -27,10 +27,9 @@ export { useLocalizedText } from './use-localized-text.ts';
  * Every catalogue, keyed by language.
  *
  * English error copy is merged in from ERROR_MESSAGES rather than duplicated in
- * en.json - core and the CLI already need that table, and one English string per
- * error is enough. Content issue reasons are merged the same way and for the
- * same reason, the CLI being the other reader. uk.json carries its own `errors`
- * and `issueReasons` subtrees.
+ * en.json - AppError already needs that table for its message, and one English
+ * string per error is enough. Content issue reasons are merged the same way.
+ * uk.json carries its own `errors` and `issueReasons` subtrees.
  */
 export const resources = {
   en: {

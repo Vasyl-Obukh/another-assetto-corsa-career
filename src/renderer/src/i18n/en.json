@@ -48,7 +48,6 @@
     "description": "Folder names are IDs, so mods count exactly like official content.",
     "scan": "Scan content",
     "rescan": "Rescan",
-    "scanning": "Scanning…",
     "blocked": "Locate the Assetto Corsa install before scanning content.",
     "never": "Not scanned yet",
     "scannedAt": "Scanned {{when}} in {{duration}}",
@@ -640,7 +639,6 @@
     }
   },
   "calendar": {
-    "season": "Season {{number}}",
     "today": "Today",
     "advanceHint": "The clock stops at the first event you have entered rather than going past it.",
     "nothing": "Nothing on the calendar",
@@ -669,9 +667,6 @@
     "locked": "Above your level",
     "enrolled": "Entered",
     "enter": "Enter",
-    "withdraw": "Withdraw",
-    "withdrawTitle": "Leave {{series}}?",
-    "withdrawBody": "Every round you have not yet raced becomes a non-start. Points you have already scored stay.",
     "standings": {
       "you": "You"
     },
@@ -1890,13 +1885,11 @@
       "inferredHint": "Practice and qualifying carry no classification of their own, so this order is sorted from the lap data."
     },
     "column": {
-      "position": "#",
       "driver": "Driver",
       "car": "Car",
       "laps": "Laps",
       "best": "Best lap",
       "cuts": "Cuts",
-      "total": "Total",
       "timeGap": "Time / gap",
       "gap": "Gap",
       "gained": "Places gained from the grid",
@@ -1942,7 +1935,6 @@
     }
   },
   "cars": {
-    "title": "Cars",
     "searchPlaceholder": "Search cars by name, brand, folder or tag",
     "skins_one": "{{count}} livery",
     "skins_other": "{{count}} liveries",
@@ -2007,7 +1999,6 @@
       "years": "Year",
       "price": "Price"
     },
-    "subtitle": "Every car in your library, and which championships race it.",
     "unitBhp": "bhp",
     "unitBhpPerTonne": "bhp/t",
     "unitSeconds": "s",
@@ -2146,12 +2137,7 @@
     "quarter": "A quarter"
   },
   "forecast": {
-    "title": "Event forecast",
-    "hint": "Generated from the round's climate. The race runs in exactly this weather.",
-    "day": "Day {{number}}",
     "change": "{{from}}, then {{to}}",
-    "substituted": "{{intended}} is switched off or not installed, so this runs {{actual}} instead",
-    "authored": "Set by the championship rather than generated",
     "preset": "A named weather preset",
     "unavailable": "No allowed weather is installed, so none is set"
   },
@@ -2728,7 +2714,6 @@
     },
     "seat": {
       "title": "Your seat",
-      "declinedTitle": "The seat you declined",
       "inSeat": "For this event alone",
       "racedBy": "The team raced it without you",
       "underWay": "Under way - it can no longer be declined."
@@ -2912,9 +2897,7 @@
       "description": "Set an event up and drive it - a field of any cars, at any track, with whatever sessions you like.",
       "count_one": "{{count}} race set up",
       "count_other": "{{count}} races set up",
-      "changed": "Last changed {{ago}}",
-      "none": "No races set up yet",
-      "noneHint": "Your first one is a track, a car and its sessions"
+      "changed": "Last changed {{ago}}"
     },
     "continue": "Continue",
     "new": "New",
@@ -3577,7 +3560,6 @@
     },
     "card": {
       "seat": "Your seat",
-      "field": "Field",
       "cars_one": "{{count}} car",
       "cars_other": "{{count}} cars",
       "classes_one": "one class",
@@ -3618,7 +3600,6 @@
       "title": "Decline the {{event}}?",
       "body": "{{team}} fills the seat with another driver. You can still enter the event yourself, paying its {{fee}} fee and bringing a car of its class.",
       "bodyFree": "{{team}} fills the seat with another driver. You can still enter the event yourself, bringing a car of its class.",
-      "keep": "Keep it",
       "confirm": "Decline"
     },
     "toast": {
@@ -3662,7 +3643,6 @@
         "half": "Half covered",
         "share": "{{share}}% is yours",
         "shareAll": "Every prize is yours",
-        "shareAllHint": "Race and championship purses alike",
         "champion": "Champion {{amount}}",
         "top": "Top {{place}} {{amount}}",
         "bonusHint": "On your final place in the class",
@@ -3870,7 +3850,6 @@
         "unclassified": "unclassified",
         "strip": "{{series}} {{edition}} · Round {{number}} of {{rounds}}",
         "stripHistoric": "{{series}}",
-        "stripDetail": "{{round}} · {{entry}}",
         "lede": {
           "win": "A win at {{round}}.",
           "podium": "A podium at {{round}}.",
@@ -3921,8 +3900,6 @@
           "championship": "Championship",
           "round": "This round",
           "next": "Next round",
-          "nextDay": "{{day}}",
-          "none": "None",
           "last": "Season done"
         },
         "points_one": "{{count}} point",

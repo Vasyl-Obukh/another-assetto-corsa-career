@@ -23,12 +23,10 @@ screen of grey chips has been shipped and sent back three times.
 
 ## Stack
 
-- **Node.js 24+** - a hard floor: native `.ts` execution and `import.meta.dirname`.
-- **TypeScript**, run directly by Node; `tsc` is typecheck-only (`noEmit`), so
-  relative imports keep their `.ts` extension. The CLI scripts pass
-  `--experimental-transform-types` for enums - **use the npm scripts, never
-  `node spike.ts` directly**. `main`, `preload` and `renderer` are bundled by
-  electron-vite and never see this.
+- **Node.js 24+** - a hard floor: `import.meta.dirname`.
+- **TypeScript**; `tsc` is typecheck-only (`noEmit`), and relative imports keep
+  their `.ts` extension. `main`, `preload` and `renderer` are bundled by
+  electron-vite.
 - **Electron** (Windows-only), built by **electron-vite**. Hide the window or
   drop to the tray while a race is live - the app sits beside a running game.
 - **React 19**, **shadcn/ui** on Radix, **Tailwind v4**. shadcn components are
@@ -37,8 +35,8 @@ screen of grey chips has been shipped and sent back three times.
 - **ESLint**: Airbnb (`eslint-config-airbnb-extended`) plus typescript-eslint,
   with React/hooks/jsx-a11y scoped to the renderer.
 - **Zero runtime dependencies**: everything lives in `devDependencies`, bundled
-  or provided by Electron. `src/core/` is stricter still - dependency-free and
-  runnable by bare Node, which the lint config enforces.
+  or provided by Electron. `src/core/` is stricter still - dependency-free,
+  which the lint config enforces.
 
 ```
 npm run dev       # electron-vite dev server
@@ -47,9 +45,6 @@ npm run start     # run the built app
 npm run package   # build, then a Windows installer in release/ (electron-builder.yml)
 npm run release   # the same, uploaded to a draft GitHub release (needs GH_TOKEN)
 
-npm run scan   npm run dry   npm run race   npm run event
-npm run series   npm run watch   npm run results
-npm run weather   npm run testmode
 npm run check     # typecheck (both projects) + lint
 npm run lint:fix
 
@@ -58,16 +53,14 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Both `npm run check` and `npm test` must pass before committing. After touching
-anything under `src/core/`, `npm run dry` must reproduce the same `out/race.ini`
-as before - the CLI is the core's regression harness.
+Both `npm run check` and `npm test` must pass before committing.
 
 ## How the integration works
 
 ```
-races/*.json  ->  race.ini  ->  acmanager://race/config  ->  CM  ->  AC
-                                                                     |
-data/results/*.json  <-  summarise()  <-  out/race_out.json  <--------+
+RaceDefinition  ->  race.ini  ->  acmanager://race/config  ->  CM  ->  AC
+                                                                       |
+race/results/*.json  <-  summarise()  <-  out/race_out.json  <----------+
 ```
 
 1. `src/core/content/` scans installed cars, tracks, weathers and CSP weather
@@ -87,11 +80,10 @@ launches and carries the grid across them.
 
 ## Layout
 
-Four layers, and imports run one way only:
+Three layers, and imports run one way only:
 
 ```
-shared  ->  core  ->  cli
-                  ->  main
+shared  ->  core  ->  main
         ->  renderer
 ```
 
@@ -100,10 +92,9 @@ shared  ->  core  ->  cli
   tsconfigs compile it. Anything main and the renderer must answer identically
   lives here - the renderer may not import core.
 - **`src/core/`** - the AC integration: file I/O and process launches, no
-  Electron, runnable by bare Node.
+  Electron.
 - **`src/main/`**, **`src/preload/`**, **`src/renderer/`** - the Electron process
   model. The preload exposes a single `contextBridge` surface, `window.api`.
-- **`src/cli/`** - the `spike.ts` command implementations, one per file or folder.
 
 There is no project-references setup (`composite` conflicts with `noEmit`), so
 `npm run typecheck` runs `tsc` twice.
@@ -227,8 +218,8 @@ Rules that live here:
   `IpcResult` envelope that the renderer unwraps into a real rejection.
 - **Main owns the theme** (`nativeTheme`) and pushes it; the renderer only
   stamps `data-theme`.
-- **Paths**: `probePaths()` never throws (diagnostics); `resolvePaths()` throws
-  (the CLI). Precedence is override, env var, registry, Steam, default, and **an
+- **Paths**: `probePaths()` never throws, reporting each path it could not
+  find. Precedence is override, env var, registry, Steam, default, and **an
   override is authoritative** - a bad one is reported, never bypassed.
 
 ### `src/renderer/`
@@ -253,14 +244,15 @@ Rules that live here:
 
 Content Manager can write `race.ini` without launching the game:
 
-1. `npm run testmode -- on` (writes `--enable-race-ini-test-mode` into CM's `Arguments.txt`).
+1. Add `--enable-race-ini-test-mode` as a line of its own to CM's
+   `%LOCALAPPDATA%\AcTools Content Manager\Arguments.txt`.
 2. Restart CM, set the same race up in Quick Drive and hit Go - nothing launches.
-3. Diff `out\race.ini` against `Documents\Assetto Corsa\cfg\race.ini`.
-4. `npm run testmode -- off` afterwards, or CM will never launch a race again.
+3. Diff the app's own `%APPDATA%\another-assetto-corsa-career\race\out\race.ini`
+   (written at every launch) against `Documents\Assetto Corsa\cfg\race.ini`.
+4. Remove the line afterwards, or CM will never launch a race again.
 
-`npm run testmode` alone prints the procedure with the paths filled in. The flag
-is deliberately CLI-only. The same pass writes `cfg\assists.ini`. When a launch
-misbehaves, `cfg\race.ini` straight afterwards is what CM actually handed AC.
+The app never writes that flag. The same pass writes `cfg\assists.ini`. When a
+launch misbehaves, `cfg\race.ini` straight afterwards is what CM actually handed AC.
 
 ## Conventions
 
@@ -280,9 +272,9 @@ its props interface beside it. **`index.ts` only re-exports, never implements.**
 depends on who runs the code:
 
 - `src/renderer/` omits it (`moduleResolution: bundler`).
-- `src/core/`, `src/cli/`, `src/shared/`, `spike.ts`, `src/main/` and
-  `src/preload/` spell it out - bare Node has no directory index resolution, and
-  the root tsconfig stays on `nodenext` to catch the mistake.
+- `src/core/`, `src/shared/`, `src/main/` and `src/preload/` spell it out -
+  Node has no directory index resolution, and the root tsconfig stays on
+  `nodenext` to catch the mistake.
 
 A directory may not share a name with a sibling file (it resolved wrongly on
 Windows). Import order is enforced by `import-x/order` - run `npm run lint:fix`.
@@ -314,8 +306,7 @@ protocol quirk, a value from another program's source, an invisible reason.
 English templates live in `src/shared/errors/constants.ts`, merged into i18next
 at init; `uk.json` carries its own `errors` subtree; the renderer resolves them
 with `useAppError()`. Errors from outside (errno, spawn failures) travel raw. A
-message meaningful in one surface only is appended there (`describeProblems` in
-`src/cli/utils.ts`).
+message meaningful in one surface only is appended there.
 
 **Fail loudly at validation.** Several integration points fail silently - the
 wrong weather controller just gives the wrong weather - so validate against
@@ -449,15 +440,13 @@ updated functions in a follow-up pass.
 - Above a test guarding a fixed bug, say so in a comment.
 - **Nothing testable may import `react-router`** (ESM-only, and it reaches
   `import.meta.hot`) - which is why `lib/routes/` builds paths itself.
-- **`src/cli/constants.ts` cannot be imported by a test** (`import.meta.dirname`);
-  mock it.
 - **Stores are tested through their commands** over the fakes in
   `src/main/__tests__/fakes/`, built with `fake()`, which throws on any member a
   test did not give it. Assert on what the store answers and writes, never on
   which fake it called; the career store's suite is the model. A store that
   dates anything runs under fake timers that fake the clock alone.
 
-Covered: `src/shared`, `src/core`, the CLI's and the renderer's pure helpers,
+Covered: `src/shared`, `src/core`, the renderer's pure helpers,
 the stores in `src/main/`, and main functions with real logic (`isOnSomeDisplay`,
 `toIpcError`, over a small `electron` fake). Out of scope: React components, the
 window and app lifecycle, `registerHandlers`.
@@ -469,8 +458,7 @@ Radix package pinned exactly in `devDependencies`.
 
 ## AC and CM behaviour we depend on
 
-Measured unless marked otherwise. `races/spikes/` holds one probe per question,
-its procedure in its `notes` - `npm run race -- spikes/<name>`, then `npm run results`.
+Measured unless marked otherwise.
 
 **Launching**
 
@@ -480,8 +468,8 @@ its procedure in its `notes` - `npm run race -- spikes/<name>`, then `npm run re
   result, which reads like being lapped - a workable DNF proxy. Retirements and
   penalties cannot be observed at all.
 - **Closing the app mid-race loses that launch** - the watcher dies with main,
-  and the launch reads as pending. `npm run watch` adopts the last result in the
-  CLI; the app still wants the same action.
+  and the launch reads as pending. The app has no action yet to adopt the last
+  result.
 - **CM overwrites the player's `DRIVER_NAME`** with its own profile name; AI
   names pass through. Otherwise CM hands AC our INI verbatim, adding only the
   geotag and timezone keys CSP needs.
@@ -489,9 +477,9 @@ its procedure in its `notes` - `npm run race -- spikes/<name>`, then `npm run re
   leave alone.
 - **Assists**: `assistsData=` takes CM's own `AssistsProperties` as the inner
   object of a JSON string inside JSON. Traps: slipstream is `SlipSteam`, fuel
-  rate is `FuelConsumption`. A wrong key fails silently - keep
-  `spikes/assists.json`. Sending assists rewrites the user's `cfg/assists.ini`
-  and never puts it back.
+  rate is `FuelConsumption`. A wrong key fails silently, so the assists tests
+  pin both. Sending assists rewrites the user's `cfg/assists.ini` and never puts
+  it back.
 
 **Results**
 
@@ -521,9 +509,8 @@ its procedure in its `notes` - `npm run race -- spikes/<name>`, then `npm run re
   undo that, only warn.
 - Road temperature is Kunos' curve with CSP's guards - raw, it gives 214C at
   midnight. Unmeasured: what CM itself writes at 22:00.
-- **Not yet driven**: `MAX_TIME_MULTIPLIER` is a provisional 48 until
-  `spikes/time-multiplier` is, and that both planners set the clock to the
-  plan's multiplier is read from source. `RAIN_FOR_FULL_WASH` and
+- **Never driven**: `MAX_TIME_MULTIPLIER` is a provisional 48, and that both
+  planners set the clock to the plan's multiplier is read from source. `RAIN_FOR_FULL_WASH` and
   `GRIP_GAIN_PER_SESSION` were never measured.
 
 **Known gaps**

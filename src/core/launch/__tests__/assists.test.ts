@@ -26,8 +26,7 @@ describe('core/launch/assists', () => {
 
     // Both spellings are Content Manager's own and neither is guessable, so a
     // rename here is silent: the assist simply stays at AC's default and
-    // nothing reports it. Driving races/spikes/assists.json is what proved
-    // these two arrive.
+    // nothing reports it. Both were checked arriving in a real launch.
     it('spells slipstream SlipSteam and fuel rate FuelConsumption', () => {
       const preset = JSON.parse(assistsPresetJson({ slipstream: 3, fuelRate: 5 }));
 

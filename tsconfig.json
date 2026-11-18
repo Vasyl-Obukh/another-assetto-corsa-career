@@ -6,12 +6,8 @@
     "moduleResolution": "nodenext",
     "types": ["node"],
 
-    // Node 24 runs TypeScript directly, so nothing is emitted and imports keep
-    // their .ts extensions. Its default strip-only mode cannot express enums, so
-    // the CLI scripts pass --experimental-transform-types and run the full
-    // transform instead - which is why bare `node spike.ts` no longer works and
-    // every command has an npm script. electron-vite bundles main and preload,
-    // but they share these rules so src/core stays runnable by Node too.
+    // Nothing is emitted: electron-vite bundles main and preload, and imports
+    // keep their .ts extensions, as Node itself would need to run src/core.
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -24,10 +20,8 @@
   },
   // The renderer is a separate project (DOM lib, JSX) at src/renderer/tsconfig.json.
   "include": [
-    "spike.ts",
     "eslint.config.js",
     "electron.vite.config.ts",
-    "src/cli/**/*.ts",
     "src/core/**/*.ts",
     "src/shared/**/*.ts",
     "src/main/**/*.ts",

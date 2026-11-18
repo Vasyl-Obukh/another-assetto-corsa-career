@@ -1,5 +1,5 @@
 // Entry point for our own components. Vendored shadcn source under ui/ is
-// imported directly from @/components/ui/<name>.tsx, the way the CLI writes it.
+// imported directly from @/components/ui/<name>.tsx, the way the shadcn CLI writes it.
 
 export { ApartMark } from './ApartMark.tsx';
 export { AppHeader } from './AppHeader.tsx';
@@ -87,17 +87,13 @@ export { SourceChips } from './SourceChips.tsx';
 export { SpecBadge } from './spec-badge/index.ts';
 export { SpecField, SpecPicker } from './spec-picker/index.ts';
 export { SwitchTile } from './SwitchTile.tsx';
-export { ToggleButton } from './ToggleButton.tsx';
 export { UpdateButton } from './update-button/index.ts';
 export {
   ClimateBadge,
-  ForecastStrip,
-  SessionForecastChip,
   WEATHER_ICON,
   WEATHER_TYPE_LABEL,
   WeatherStepIcons,
   WeatherStepsLabel,
-  EventForecast,
   driedAny,
   weatherWords,
 } from './weather-forecast/index.ts';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { DEFAULT_ASSISTS } from '../../../shared/constants/index.ts';
-import { assistFlag, fromCutBase64, resolveAssists, toCutBase64 } from '../utils.ts';
+import { fromCutBase64, resolveAssists, toCutBase64 } from '../utils.ts';
 
 describe('core/launch/utils', () => {
   describe('toCutBase64', () => {
@@ -31,13 +31,6 @@ describe('core/launch/utils', () => {
 
     it('decodes an already-padded string too', () => {
       expect(fromCutBase64('YWJj')).toBe('abc');
-    });
-  });
-
-  describe('assistFlag', () => {
-    it('renders a boolean as 1 or 0', () => {
-      expect(assistFlag(true)).toBe(1);
-      expect(assistFlag(false)).toBe(0);
     });
   });
 

@@ -77,7 +77,7 @@ export const summerness = (date: string, hemisphere: Hemisphere): number => {
  * The profile states the year as a whole, so this is where a round's date turns
  * it into the month it is actually raced in - Spa in April and Spa in August
  * are not the same odds. A round with no date at all gets the profile back
- * untouched, which is what the CLI and a round raced outside a career see.
+ * untouched, which is what a round raced outside a career sees.
  * @param profile The climate as stated for the year
  * @param date The ISO date the round races on, or undefined when it has none
  * @param hemisphere Which half of the world it is raced in

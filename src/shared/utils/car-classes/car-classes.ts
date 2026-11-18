@@ -135,7 +135,7 @@ export const resolveCatalogue = (layer: Readonly<ClassLayer>): ClassCatalogue =>
 
 /**
  * The catalogue exactly as the app ships it, for anything with no user layer to
- * hand - the CLI, and the tests.
+ * hand - a core entry point, and the tests.
  */
 export const SHIPPED_CATALOGUE: ClassCatalogue = resolveCatalogue(EMPTY_CLASS_LAYER);
 

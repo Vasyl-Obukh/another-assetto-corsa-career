@@ -38,7 +38,7 @@ export const formatAppError = (
 /**
  * Renders why a piece of installed content is broken, in the active language.
  *
- * Falls back to the English table the CLI prints, so a reason added to the type
+ * Falls back to the shared English table, so a reason added to the type
  * before it reaches the catalogues still reads as a sentence rather than a code.
  * @param t The translator from useTranslation
  * @param reason The reason code carried by the issue

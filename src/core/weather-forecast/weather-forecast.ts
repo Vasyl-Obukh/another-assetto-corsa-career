@@ -44,9 +44,9 @@ import { randomFrom, seedFrom } from '../seeded-random/index.ts';
 /**
  * What a caller with no settings to hand can race in.
  *
- * The default settings over whatever the install declares - which is what the
- * CLI and a core entry point see, the same way SHIPPED_CATALOGUE is the class
- * catalogue they see.
+ * The default settings over whatever the install declares - which is what a
+ * core entry point sees, the same way SHIPPED_CATALOGUE is the class catalogue
+ * it sees.
  * @param content Installed content, for the presets it declares
  * @param rainFx Whether RainFX will draw rain, on by default as it is in CSP
  * @returns The offer
@@ -193,8 +193,8 @@ export const offerForecast = (draw: RoundDraw, offer: WeatherOffer, rain = true)
  * Forecasts one round's event.
  *
  * Drawing and substituting in one go, for every caller with nowhere to store a
- * draw - the CLI, the championship library's own preview, and a round raced
- * outside a career.
+ * draw - the championship library's own preview, and a round raced outside
+ * a career.
  * @param seriesId The championship's id, part of the seed
  * @param round The round
  * @param format The event format it runs

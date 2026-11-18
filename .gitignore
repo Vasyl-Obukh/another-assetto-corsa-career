@@ -1,10 +1,7 @@
 # Dependencies
 node_modules/
 
-# Generated race configs and launch payloads
-out/
-
-# Archived race results and career progress
+# Race results the old command line archived
 data/
 
 # Electron build output

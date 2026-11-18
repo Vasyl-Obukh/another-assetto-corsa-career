@@ -36,14 +36,3 @@ export const BACK_TO_TOP_POSITION = 'fixed bottom-6 right-[max(1.5rem,calc((100v
  * and the button keeps to the corner, over the gutter.
  */
 export const WIDE_BACK_TO_TOP_POSITION = 'fixed bottom-6 right-6';
-
-/**
- * The width every settings control is given.
- *
- * Fixed rather than intrinsic so a row of them lines up regardless of what is
- * selected or which language it is in - Ukrainian's "Як у машині" is the
- * longest thing that has to fit. It carries `shrink-0` because every one of
- * these sits opposite a label in a flex row, and a long label would otherwise
- * take the width back.
- */
-export const CONTROL_WIDTH = 'w-36 shrink-0';

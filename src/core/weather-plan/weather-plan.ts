@@ -32,7 +32,6 @@ import type { PlannerKind, WeatherPlan } from '../../shared/types/index.ts';
 import { parseIni, patchIni, replaceIniSection } from '../ini/index.ts';
 
 export type { PlanBackup } from './types.ts';
-export { PROBE_PLANS } from './constants.ts';
 export { purePlanJson } from './pure.ts';
 export { solPlanSection } from './sol.ts';
 

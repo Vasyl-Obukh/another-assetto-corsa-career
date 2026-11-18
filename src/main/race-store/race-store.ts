@@ -275,8 +275,7 @@ export const createRaceStore = async (
    * Puts the user's name on the timing screen.
    *
    * The name is a property of the person playing rather than of a race, so it
-   * lives in settings; a race file that names its own driver keeps it, which is
-   * what lets a spike race under a name of its own.
+   * lives in settings; a race that names its own driver keeps it.
    * @param race The launch, already prepared
    * @returns The launch with its driver filled in
    */
@@ -294,7 +293,7 @@ export const createRaceStore = async (
    * The same arrangement `withDriver` uses, and for the same reason: aids belong
    * to the person playing, damage included, while fuel rate, tyre wear,
    * slipstream and tyre blankets are regulations and belong to the race. A race
-   * naming any of them keeps it, field by field, so a spike can still pin the lot.
+   * naming any of them keeps it, field by field.
    * @param race The launch, already prepared
    * @param aids The aids the launch was asked to run with, if any
    * @returns The launch with its assists filled in
@@ -308,9 +307,8 @@ export const createRaceStore = async (
    * Names the controller a launch should run, and installs a plan when its
    * weather is meant to change.
    *
-   * A race definition that names its own controller keeps it, which is what lets
-   * a hand-written spike file pick one. Anything else takes the controller from
-   * the weather system chosen in settings.
+   * A race definition that names its own controller keeps it. Anything else
+   * takes the controller from the weather system chosen in settings.
    * @param race The launch, already prepared
    * @returns The launch with its controller filled in
    */

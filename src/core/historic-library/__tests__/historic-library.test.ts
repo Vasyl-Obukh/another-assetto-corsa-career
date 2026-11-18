@@ -4,7 +4,7 @@ import { Discipline, SeasonLength, Weekday } from '../../../shared/types/index.t
 import type { Championship } from '../../../shared/types/index.ts';
 import { SERIES_FORMAT_VERSION, validateSeries } from '../../series/index.ts';
 import { SHIPPED_SERIES } from '../../series-library/index.ts';
-import { historicProblems, loadHistoricLibrary, SHIPPED_HISTORIC } from '../index.ts';
+import { historicProblems, SHIPPED_HISTORIC } from '../index.ts';
 
 /**
  * A historic event that is one in every respect, for a test to break.
@@ -67,17 +67,6 @@ describe('core/historic-library', () => {
       const championships = new Set(SHIPPED_SERIES.map((series) => series.id));
 
       expect(SHIPPED_HISTORIC.map(({ series }) => series.id).filter((id) => championships.has(id))).toEqual([]);
-    });
-  });
-
-  describe('loadHistoricLibrary', () => {
-    it('reads the shipped historic events without a user directory to look in', async () => {
-      const library = await loadHistoricLibrary();
-
-      expect(library.problems).toEqual([]);
-      expect(library.series.map((one) => one.series.id).sort())
-        .toEqual(SHIPPED_HISTORIC.map(({ series }) => series.id).sort());
-      expect(library.series.every((one) => one.origin === 'shipped')).toBe(true);
     });
   });
 

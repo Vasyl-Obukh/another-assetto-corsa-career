@@ -27,8 +27,8 @@ its own weather, wind, temperature, track state and start time.
 **Every item in the phase is done.** Dynamic weather as generated plans landed,
 along with the weather system setting that goes with it; road temperature is
 Kunos' own curve rather than a stand-in; Content Manager's `Arguments.txt` is
-written, from the settings screen for the two flags a career wants and from
-`npm run testmode` for the one that stops CM racing; and assists reach CM in its own serialized
+written, from the settings screen for the two flags a career wants and by
+hand for the one that stops CM racing; and assists reach CM in its own serialized
 format - **measured, not inferred**, since `races/spikes/assists.json` came back
 in `cfg/assists.ini` with all eight of its values intact - with driving aids in
 settings and regulations on the race. **Tyre blankets moved across in Phase 4**:
@@ -3551,6 +3551,11 @@ class, not only this championship's. Mockup: `mockups/teams-from-championship.ht
       while a race is running; a fetched update also installs on any quit.
       Needs the repository public before players can read it
 - [x] Tests for the new and changed functions, once reviewed
+- [x] **The command line and the spikes removed** - `spike.ts`, `src/cli/`,
+      `races/` and their npm scripts are gone, along with the core code only
+      they called and the car price and sponsor reviews. Everything they
+      measured is recorded in CLAUDE.md; `MAX_TIME_MULTIPLIER` stays a
+      provisional 48, never driven. Race INI test mode is set by hand
 - [ ] Docs: getting started, series authoring guide
 
 ---
@@ -3594,7 +3599,7 @@ class, not only this championship's. Mockup: `mockups/teams-from-championship.ht
   backup/export to cover the shareability the visible-folder option would have given.
 - ~~**Localisation depth.**~~ Settled: strings *and* dates, numbers and currency,
   via `Intl` from the start, and errors raised in `src/core/` too - they carry a
-  code the renderer translates, while the CLI keeps printing English.
+  code the renderer translates, with English as their message.
 - **Keeping the catalogue current.** Kunos still ships content and the mod teams
   ship constantly, so a catalogue authored once goes stale. Does it update with the
   app, or does something fetch it? LFM's pack in particular turns over every

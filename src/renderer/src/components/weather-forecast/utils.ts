@@ -3,25 +3,7 @@ import type { TFunction } from 'i18next';
 import { WEATHER_TYPE_LABEL } from './constants.ts';
 import { WET_WEATHER_TYPES } from '../../../../shared/constants';
 import type { WeatherType } from '../../../../shared/constants';
-import type { ForecastStep, SessionForecast } from '../../../../shared/types';
-
-/**
- * A forecast's sessions gathered under the day each runs on.
- * @param sessions The sessions, in format order
- * @returns One group per day that holds a session, in day order
- */
-export const forecastDays = (
-  sessions: readonly SessionForecast[],
-): { day: number; sessions: SessionForecast[] }[] => {
-  const days = new Map<number, SessionForecast[]>();
-  sessions.forEach((session) => {
-    days.set(session.day, [...(days.get(session.day) ?? []), session]);
-  });
-
-  return [...days]
-    .sort(([a], [b]) => a - b)
-    .map(([day, held]) => ({ day, sessions: held }));
-};
+import type { ForecastStep } from '../../../../shared/types';
 
 /**
  * A run of weather in words: one weather, or what it changes into.

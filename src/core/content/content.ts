@@ -4,7 +4,7 @@
 // Nothing is hidden: every skipped or degraded entry becomes a ContentIssue, and
 // every entry carries a fingerprint so the next scan re-reads only what moved.
 
-import { readFile, stat } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -53,7 +53,7 @@ import {
   TRACK_PREVIEW_FILE,
 } from '../../shared/constants/index.ts';
 import type {
-  Car, Content, ContentIssue, Skin, Track, Weather, WeatherController,
+  Car, ContentIssue, Skin, Track, Weather, WeatherController,
 } from '../../shared/types/index.ts';
 import type { ContentUrlTarget } from '../../shared/utils/content-url/index.ts';
 import { parseCarCurves, parseCarPerformance, parseYear } from '../car-performance/index.ts';
@@ -477,14 +477,6 @@ export const rescanContent = async (
   };
 };
 
-/**
- * Scans everything at once, for the scan command and for race validation.
- * @param contentDir The AC content directory; the install root is its parent
- * @returns Cars, tracks, weathers, weather controllers and anything broken
- */
-export const scanContent = async (contentDir: string): Promise<Content> => (
-  (await rescanContent(contentDir, null)).content
-);
 
 /**
  * The folders worth watching for content being installed or removed.
@@ -583,18 +575,4 @@ export const contentPath = (contentDir: string, target: ContentUrlTarget): strin
 export const isInsideContentDir = (contentDir: string, target: string): boolean => {
   const relative = path.relative(path.resolve(contentDir), path.resolve(target));
   return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
-};
-
-/**
- * Checks whether a path exists.
- * @param target Absolute path to test
- * @returns True when something is there
- */
-export const fileExists = async (target: string): Promise<boolean> => {
-  try {
-    await stat(target);
-    return true;
-  } catch {
-    return false;
-  }
 };

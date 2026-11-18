@@ -1,9 +1,8 @@
 // The English rendering of every way a piece of installed content can be broken.
 //
-// This is the source the CLI prints and the fallback the UI uses when a
-// catalogue has no entry for a reason. src/renderer/src/i18n merges it in as the
-// English `issueReasons` namespace, so the strings are never duplicated in
-// en.json.
+// This is the fallback the UI uses when a catalogue has no entry for a reason.
+// src/renderer/src/i18n merges it in as the English `issueReasons` namespace, so
+// the strings are never duplicated in en.json.
 
 import type { ContentIssueReason } from '../types/index.ts';
 

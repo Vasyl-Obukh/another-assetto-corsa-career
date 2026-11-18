@@ -4,7 +4,7 @@
 // including CM's extended `__CM_*` / `__TRACK_*` keys - those are what let
 // race/config drive CSP weather without a QuickDrive preset.
 //
-// Verify changes with `npm run dry` against CM's --enable-race-ini-test-mode output.
+// Verify changes against what CM's --enable-race-ini-test-mode writes.
 
 import {
   CM_FEATURE_SET,

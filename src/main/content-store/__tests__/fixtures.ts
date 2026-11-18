@@ -4,7 +4,7 @@ import type { ContentScan } from '../../../core/content/index.ts';
 import { carProvenance, trackProvenance } from '../../../core/content-catalogue/index.ts';
 import { CONTENT_CATALOGUE_VERSION } from '../../../core/content-catalogue/index.ts';
 import type {
-  Car, Content, Track, Weather, WeatherController,
+  Car, Content, Track, Weather,
 } from '../../../shared/types/index.ts';
 import { CONTENT_CACHE_VERSION } from '../constants.ts';
 import type { ContentCache } from '../types.ts';
@@ -82,18 +82,6 @@ export const makeWeather = (id: string): Weather => ({
   timeDiapason: null, cloudCover: 0, rain: null, forceHeadlights: false,
 });
 
-/**
- * Builds a CSP weather controller.
- * @param id Controller folder name
- * @returns A complete WeatherController
- */
-export const makeController = (id: string): WeatherController => ({
-  id,
-  name: id,
-  author: null,
-  description: null,
-  version: null, follows: { weather: 'yes', temperature: 'yes', wind: 'yes' },
-});
 
 /**
  * Builds scanned content out of plain ID lists.

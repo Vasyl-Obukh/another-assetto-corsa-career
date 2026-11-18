@@ -43,10 +43,3 @@ export const resolveAssists = (assists: Assists = {}): Required<Assists> => ({
   ...DEFAULT_ASSISTS,
   ...defined(assists),
 });
-
-/**
- * Renders a boolean assist as AC's 1 or 0.
- * @param value The assist setting
- * @returns 1 when enabled, 0 when not
- */
-export const assistFlag = (value: boolean): number => (value ? 1 : 0);

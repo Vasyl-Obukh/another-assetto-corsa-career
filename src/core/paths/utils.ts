@@ -4,7 +4,6 @@ import { execFile } from 'node:child_process';
 import { access, constants } from 'node:fs/promises';
 import { promisify } from 'node:util';
 
-import { AppError } from '../../shared/errors/index.ts';
 import type { AppErrorInfo } from '../../shared/errors/index.ts';
 import type { PathCandidate, PathProbe } from '../../shared/types/index.ts';
 
@@ -42,21 +41,6 @@ export const regQuery = async (key: string, value?: string): Promise<string | nu
     return null;
   }
 };
-
-/**
- * Turns a failed probe back into something throwable, keeping its code.
- *
- * `pick` always sets an error when a probe fails, but the type does not say so,
- * and a probe with neither a value nor a reason should still throw a sentence
- * rather than an empty message.
- * @param probe The probe that failed
- * @returns The error to throw
- */
-export const probeError = (probe: PathProbe): AppError => (
-  probe.error
-    ? new AppError(probe.error.code, probe.error.params)
-    : new AppError('paths.unresolved')
-);
 
 /**
  * Joins candidate paths into a readable list for an error message.

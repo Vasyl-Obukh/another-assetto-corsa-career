@@ -543,7 +543,7 @@ describe('core/event/utils', () => {
     });
 
     it('stops rather than spinning on an event hand-edited into a cycle', () => {
-      // Validation refuses one, but a races/*.json file is not validated.
+      // Validation refuses one; a hand-edited file can still hold one.
       const event = makeKnockout();
       event.sessions = [
         { id: 'a', type: 'qualify', inherit: { from: 'b' } },

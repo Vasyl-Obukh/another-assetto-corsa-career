@@ -558,8 +558,7 @@ export type ContentKind = 'car' | 'track' | 'weather' | 'weatherController';
 /**
  * Why an entry is broken.
  *
- * A code rather than a sentence, so the UI can translate it and the CLI can
- * print its own English.
+ * A code rather than a sentence, so the UI can translate it.
  */
 export type ContentIssueReason =
   | 'uiMissing'

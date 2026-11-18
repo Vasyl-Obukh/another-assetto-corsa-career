@@ -1,7 +1,7 @@
 // The English rendering of every error code, in i18next's {{param}} syntax so
 // one formatter serves both this table and the translated catalogues.
 //
-// This is the source the CLI prints and the fallback the UI uses when a
+// This is every AppError's message, and the fallback the UI uses when a
 // catalogue has no entry for a code. src/renderer/src/i18n merges it in as the
 // English `errors` namespace, so the strings are never duplicated in en.json.
 
@@ -139,7 +139,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'career.event.otherInProgress': '{{event}} is part-way through. Finish its event before starting another',
   'career.event.sameDay': '{{event}} is on the same day, and only one of the two can be raced',
   'career.event.inProgress': 'The calendar cannot move on while {{event}} is part-way through',
-  'career.event.complete': 'Every session of {{round}} has been run',
   'series.sessions.empty': 'Event format {{format}} of {{series}} has no sessions',
   'series.formats.empty': 'Championship {{series}} declares no event formats',
   'series.format.unknown':
@@ -280,11 +279,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   'ipc.pathsNotLocated': 'Cannot scan content until the Assetto Corsa install has been located.',
 };
 
-/**
- * Advice the CLI appends to a missing-track error. Kept out of the shared
- * template because `npm run scan` means nothing inside the desktop app.
- */
-export const SCAN_HINT = 'Run `npm run scan` to see what is available.';
 
 /**
  * The folder that proves a directory really is the Assetto Corsa install root.

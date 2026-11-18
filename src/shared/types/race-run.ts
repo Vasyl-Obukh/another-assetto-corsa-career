@@ -1,8 +1,7 @@
-// Running a race from the app rather than from the CLI.
+// Running a race from the app.
 //
-// The CLI never needed these: it plans, launches and waits inside one command.
-// The app describes the same work to a renderer in another process, so the plan,
-// the progress and the archived results all become values that cross a boundary.
+// Main describes the work to a renderer in another process, so the plan, the
+// progress and the archived results all become values that cross a boundary.
 
 import type { WeatherFxState } from './content.ts';
 import type { EventPlan, EventState } from './event.ts';

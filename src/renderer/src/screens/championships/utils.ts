@@ -35,7 +35,6 @@ import { editionEntry, enteredEdition } from '../../../../shared/utils/editions'
 import { awaitingMail } from '../../../../shared/utils/inbox';
 import { classShare, scaledPrize } from '../../../../shared/utils/prizes';
 import { recommendedLayout, trackKeyOf } from '../../../../shared/utils/recommended-tracks';
-import { eligibleCarsIn } from '../../../../shared/utils/round-availability';
 import { hiddenAsFiller, isSeriesActive } from '../../../../shared/utils/series-toggles';
 import type { ProvenancePicks } from '@/components';
 import type { ChampionshipCriteria } from '@/hooks';
@@ -93,22 +92,6 @@ export const entryAvailability = (
 ): EntryAvailability | undefined => listing.availability.entries.find(
   (one) => one.entry === entry,
 );
-
-/**
- * The cars one class entry may field at one round.
- *
- * The round's own override where it has one, since a round may change what a
- * class drives; the season-long answer otherwise.
- * @param listing The championship and its availability
- * @param entry The class entry's id
- * @param round The round's id
- * @returns Installed car folder IDs, which may be empty
- */
-export const carsFor = (
-  listing: SeriesListing,
-  entry: string,
-  round: string,
-): readonly string[] => eligibleCarsIn(listing.availability, round, entry);
 
 /**
  * Names a recommended layout by its circuit and its own name.

@@ -22,7 +22,6 @@ import type {
 import { DEFAULT_STANDINGS, TIER_METAL_KEYS } from '../constants.ts';
 import {
   availabilityState,
-  carsFor,
   contentFacets,
   contentPicks,
   contentValues,
@@ -672,33 +671,6 @@ describe('renderer/screens/championships/utils', () => {
       }));
 
       expect(missing.pitboxes).toEqual([shortfall('spa_a'), shortfall('spa_b')]);
-    });
-  });
-
-  describe('carsFor', () => {
-    it("answers with the round's own cars where the round changes what a class drives", () => {
-      const one = listing({
-        rounds: [{
-          round: 'magione',
-          track: null,
-          pitboxes: null,
-          racedOn: null,
-          races: [],
-          entries: [{
-            entry: 'main', eligible: ['ks_mazda_mx5_nd'], missing: [], enough: true,
-          }],
-        }],
-      });
-
-      expect(carsFor(one, 'main', 'magione')).toEqual(['ks_mazda_mx5_nd']);
-    });
-
-    it("falls back to the season's cars for a round that changes nothing", () => {
-      expect(carsFor(listing(), 'main', 'magione')).toEqual(['ks_mazda_mx5_cup']);
-    });
-
-    it('answers with nothing for a class the championship does not hold', () => {
-      expect(carsFor(listing(), 'other', 'magione')).toEqual([]);
     });
   });
 

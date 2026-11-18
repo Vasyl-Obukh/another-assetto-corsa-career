@@ -7,8 +7,7 @@
  */
 export type CmFlag =
   | '--skip-all-results'
-  | '--hide-race-cancel-button'
-  | '--enable-race-ini-test-mode';
+  | '--hide-race-cancel-button';
 
 /**
  * What Content Manager's Arguments.txt holds right now.

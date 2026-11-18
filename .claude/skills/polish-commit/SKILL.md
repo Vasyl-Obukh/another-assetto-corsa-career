@@ -70,15 +70,11 @@ Now write them, following `CLAUDE.md`'s Tests section:
   it, so nobody deletes it as redundant later.
 
 Cover every function the commit added or changed. In scope: `src/shared`,
-`src/core`, the CLI's pure helpers, the renderer's pure helpers, the settings
-store. Out of scope and not worth arguing about: React components,
-`createWindow`, `registerHandlers`.
+`src/core`, the renderer's pure helpers, the settings store. Out of scope and
+not worth arguing about: React components, `createWindow`, `registerHandlers`.
 
-Two traps that fail at parse time rather than as an assertion - neither is
-obvious from the error:
-
-- Nothing testable may import `react-router`.
-- `src/cli/constants.ts` cannot be imported; mock it.
+One trap fails at parse time rather than as an assertion, and is not obvious
+from the error: nothing testable may import `react-router`.
 
 ## 4. Verify
 
@@ -87,9 +83,7 @@ npm run check     # typecheck both projects + lint
 npm test
 ```
 
-Both must pass. If anything under `src/core/` moved, `npm run dry` must still
-reproduce the same `out/race.ini` - diff it against a copy taken before the
-change, and if it legitimately differs, say exactly which keys and why.
+Both must pass.
 
 ## Report
 

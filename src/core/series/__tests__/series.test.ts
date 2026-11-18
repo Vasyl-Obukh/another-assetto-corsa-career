@@ -9,9 +9,11 @@ import type {
 } from '../../../shared/types/index.ts';
 import { resolveCatalogue, SHIPPED_CATALOGUE } from '../../../shared/utils/car-classes/index.ts';
 import { withRecommendedTracks } from '../../../shared/utils/recommended-tracks/index.ts';
-import { defaultWeatherOffer, drawRound, offerForecast } from '../../weather-forecast/index.ts';
 import {
-  drawField, formatOf, roundRace, seriesAvailability, seriesForecast, validateSeries,
+  defaultWeatherOffer, drawRound, forecastRound, offerForecast,
+} from '../../weather-forecast/index.ts';
+import {
+  drawField, formatOf, roundRace, seriesAvailability, validateSeries,
 } from '../series.ts';
 import { makeContent, makeSeries } from './fixtures.ts';
 
@@ -431,46 +433,6 @@ describe('core/series', () => {
     });
   });
 
-  describe('seriesForecast', () => {
-    it('forecasts nothing for a championship that authors its weather', () => {
-      expect(seriesForecast(makeSeries(), OFFER)).toEqual([]);
-    });
-
-    it('forecasts every round, each from its own climate where it names one', () => {
-      const base = generated();
-      const series = {
-        ...base,
-        rounds: [
-          base.rounds[0],
-          {
-            id: 'magione-2', name: 'Magione again', track: { id: 'magione' }, climate: Climate.ARID,
-          },
-        ],
-      };
-      const forecast = seriesForecast(series, OFFER);
-
-      expect(forecast.map((one) => [one.round, one.climate])).toEqual([
-        ['magione', Climate.OCEANIC], ['magione-2', Climate.ARID],
-      ]);
-      forecast.forEach((one) => {
-        expect(one.series).toBe('test-cup');
-        expect(one.sessions).toHaveLength(1);
-      });
-    });
-
-    it('draws only weather the offer holds', () => {
-      seriesForecast(generated(), OFFER).forEach((round) => round.sessions.forEach((session) => {
-        session.steps.forEach((step) => expect(OFFER.types).toContain(step.weather));
-      }));
-    });
-
-    it('forecasts no rain for a championship that does not allow it', () => {
-      seriesForecast({ ...generated(), rain: false }, OFFER).forEach((round) => round.sessions.forEach((session) => {
-        session.steps.forEach((step) => expect(step.weather).toBe(WeatherType.CLEAR));
-      }));
-    });
-  });
-
   describe('drawField', () => {
     /**
      * Draws the field of a championship with the player in its only class.
@@ -683,7 +645,10 @@ describe('core/series', () => {
         SHIPPED_CATALOGUE,
         OFFER,
       );
-      const [forecast] = seriesForecast(series, OFFER);
+      const [round] = series.rounds;
+      const format = formatOf(series, round);
+      if (!format) throw new Error('The fixture round has no format.');
+      const forecast = forecastRound(series.id, round, format, Climate.OCEANIC, OFFER, {}, true);
 
       expect(race.sessions?.[0].conditions).toEqual(forecast.sessions[0].conditions);
       expect(race.sessions?.[0]).toMatchObject({ type: 'race', laps: 8 });

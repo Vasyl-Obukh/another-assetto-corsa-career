@@ -18,7 +18,7 @@ export const MIN_SCALED_LAPS = 5;
  * The fastest the clock is ever sent at, whatever a race's own multiplier and
  * the step it is shortened by come to together.
  *
- * Provisional: equal to the largest step, pending `races/spikes/time-multiplier`
- * finding where Assetto Corsa itself stops honouring `TIME_MULT`.
+ * Provisional: equal to the largest step, since where Assetto Corsa itself
+ * stops honouring `TIME_MULT` was never measured.
  */
 export const MAX_TIME_MULTIPLIER = 48;

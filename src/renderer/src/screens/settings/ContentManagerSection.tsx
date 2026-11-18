@@ -1,7 +1,7 @@
 import { RefreshCwIcon, TerminalIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { SETTINGS_CM_FLAGS } from './constants.ts';
+import { CM_FLAGS } from '../../../../shared/constants';
 import { ErrorCard, SettingsSection, SwitchTile } from '@/components';
 import { useCmArguments } from '@/hooks';
 
@@ -34,7 +34,7 @@ export const ContentManagerSection = () => {
       {/* The flags are a fixed pair, so their tiles are drawn at once and only
           the switches wait on Content Manager's file. */}
       <div className="grid gap-2.5 md:grid-cols-2">
-        {SETTINGS_CM_FLAGS.map((flag) => (
+        {CM_FLAGS.map((flag) => (
           <SwitchTile
             key={flag}
             label={t(`cmFlag.${flag}`)}

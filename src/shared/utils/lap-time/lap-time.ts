@@ -1,8 +1,7 @@
 // Rendering a lap time the way a timing screen does.
 //
 // Deliberately not an Intl formatting: m:ss.mmm is a motorsport convention
-// rather than a locale decision, so it stays out of the renderer's i18n module
-// and the CLI and the app share it.
+// rather than a locale decision, so it stays out of the renderer's i18n module.
 
 import { MILLIS_DIGITS, NO_LAP_TIME, SECONDS_DIGITS } from './constants.ts';
 import { MS_PER_MINUTE, MS_PER_SECOND } from '../../constants/index.ts';

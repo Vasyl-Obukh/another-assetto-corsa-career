@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 import type {
-  AidMode, PercentStop, SectionLink, SettingsCmFlag, SettingsTab, WeatherCapability,
+  AidMode, PercentStop, SectionLink, SettingsTab, WeatherCapability,
 } from './types.ts';
 import { DRIVING_AID_FLAGS } from '../../../../shared/constants';
 import type { DrivingAidFlag, HistoricFrequency } from '../../../../shared/types';
@@ -113,14 +113,3 @@ export const DAMAGE_STOPS: readonly PercentStop[] = [
 export const HELPER_AIDS = DRIVING_AID_FLAGS.filter(
   (key): key is Exclude<DrivingAidFlag, 'visualDamage'> => key !== 'visualDamage',
 );
-
-/**
- * The Content Manager flags that are ordinary preferences.
- *
- * Both make a career loop smoother and neither can stop a race happening,
- * which is the line `SettingsCmFlag` draws.
- */
-export const SETTINGS_CM_FLAGS: readonly SettingsCmFlag[] = [
-  '--skip-all-results',
-  '--hide-race-cancel-button',
-];

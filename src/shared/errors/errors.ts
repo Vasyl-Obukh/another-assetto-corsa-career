@@ -1,19 +1,19 @@
 // Errors the app raises deliberately, carrying a stable code so the UI can
-// translate them and the CLI can still print a readable English sentence.
+// translate them and a log still reads as an English sentence.
 
 import { ERROR_MESSAGES } from './constants.ts';
 import type { AppErrorInfo, ErrorCode, ErrorParams } from './types.ts';
 import { formatMessage } from './utils.ts';
 
 export type { AppErrorInfo, ErrorCode, ErrorParams } from './types.ts';
-export { AC_ROOT_MARKER, ERROR_MESSAGES, SCAN_HINT } from './constants.ts';
+export { AC_ROOT_MARKER, ERROR_MESSAGES } from './constants.ts';
 export { formatMessage } from './utils.ts';
 
 /**
  * An error with a translatable identity.
  *
  * `message` is the English rendering, so anything that only knows how to print
- * an Error - the CLI, a log, a stack trace - keeps working unchanged.
+ * an Error - a log, a stack trace - keeps working unchanged.
  */
 export class AppError extends Error {
   /**

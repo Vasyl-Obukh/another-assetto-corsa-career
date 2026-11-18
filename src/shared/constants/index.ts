@@ -33,7 +33,7 @@ export {
   DEFAULT_STARTING_MONEY, MAX_START_YEAR, MIN_START_YEAR, STARTING_MONEY_STOPS,
 } from './career.ts';
 
-export { CM_FLAGS, RACE_INI_TEST_MODE } from './cm-arguments.ts';
+export { CM_FLAGS } from './cm-arguments.ts';
 
 export { CONTENT_ISSUE_REASONS } from './content-issues.ts';
 

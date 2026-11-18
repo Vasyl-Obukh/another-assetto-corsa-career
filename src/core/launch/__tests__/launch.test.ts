@@ -1,8 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import {
-  buildAssistsIni, buildBatchUri, buildRaceUri, buildRaceUriFromFile,
-} from '../launch.ts';
+import { buildRaceUri } from '../launch.ts';
 import { fromCutBase64 } from '../utils.ts';
 
 /**
@@ -45,62 +43,6 @@ describe('core/launch', () => {
     it('includes assistsData when a preset is given', () => {
       const uri = buildRaceUri('[RACE]', { assistsPreset: 'preset-blob' });
       expect(fromCutBase64(param(uri, 'assistsData') as string)).toBe('preset-blob');
-    });
-  });
-
-  describe('buildRaceUriFromFile', () => {
-    it('sends the path as configFile rather than configData', () => {
-      const uri = buildRaceUriFromFile('D:\\out\\race.ini');
-
-      expect(uri).toContain('configFile=');
-      expect(uri).not.toContain('configData=');
-      expect(param(uri, 'configFile')).toBe('D:\\out\\race.ini');
-    });
-  });
-
-  describe('buildBatchUri', () => {
-    it('joins commands with newlines inside one batch call', () => {
-      const uri = buildBatchUri(['acmanager://install?url=a', 'acmanager://race/config?x=1']);
-
-      expect(uri).toContain('acmanager://batch?cmds=');
-      expect(fromCutBase64(param(uri, 'cmds') as string))
-        .toBe('acmanager://install?url=a\nacmanager://race/config?x=1');
-    });
-  });
-
-  describe('buildAssistsIni', () => {
-    it('writes an [ASSISTS] section with CRLF endings', () => {
-      const ini = buildAssistsIni();
-
-      expect(ini.startsWith('[ASSISTS]')).toBe(true);
-      expect(ini).toContain('\r\n');
-    });
-
-    it('defaults to what AC itself ships rather than everything off', () => {
-      const ini = buildAssistsIni();
-
-      expect(ini).toContain('ABS=1');
-      expect(ini).toContain('TRACTION_CONTROL=1');
-      expect(ini).toContain('DAMAGE=100');
-      expect(ini).toContain('TYRE_BLANKETS=1');
-    });
-
-    it('defaults the optional aids to off', () => {
-      const ini = buildAssistsIni();
-
-      expect(ini).toContain('IDEAL_LINE=0');
-      expect(ini).toContain('AUTO_SHIFTER=0');
-    });
-
-    it('writes the values the race asked for', () => {
-      const ini = buildAssistsIni({
-        abs: 0, damage: 50, idealLine: true, tyreWear: 2,
-      });
-
-      expect(ini).toContain('ABS=0');
-      expect(ini).toContain('DAMAGE=50');
-      expect(ini).toContain('IDEAL_LINE=1');
-      expect(ini).toContain('TYRE_WEAR=2');
     });
   });
 });

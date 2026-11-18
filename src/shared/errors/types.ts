@@ -113,7 +113,6 @@ export type ErrorCode =
   | 'career.event.otherInProgress'
   | 'career.event.sameDay'
   | 'career.event.inProgress'
-  | 'career.event.complete'
   | 'series.sessions.empty'
   | 'series.formats.empty'
   | 'series.format.unknown'
@@ -242,8 +241,8 @@ export interface AppErrorInfo {
    */
   params: ErrorParams;
   /**
-   * The English rendering, used by the CLI and as a fallback when a catalogue
-   * has no entry for the code.
+   * The English rendering, used in logs and as a fallback when a catalogue has
+   * no entry for the code.
    */
   message: string;
 }

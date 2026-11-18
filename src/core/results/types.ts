@@ -17,9 +17,8 @@ export interface WaitOptions {
   /**
    * Stops the wait early when aborted, resolving null as a timeout does.
    *
-   * The CLI never needed one - Ctrl+C ends the process - but the app has to be
-   * able to stop watching without ending anything else, and the poll loop is
-   * otherwise a four hour commitment.
+   * The app has to be able to stop watching without ending anything else, and
+   * the poll loop is otherwise a four hour commitment.
    */
   signal?: AbortSignal;
 }

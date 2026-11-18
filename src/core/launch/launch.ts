@@ -14,8 +14,7 @@ import type { ChildProcess } from 'node:child_process';
 
 import { LAUNCH_MAX_BUFFER } from './constants.ts';
 import type { LaunchOptions, RaceUriOptions } from './types.ts';
-import { assistFlag, resolveAssists, toCutBase64 } from './utils.ts';
-import type { Assists } from '../../shared/types/index.ts';
+import { toCutBase64 } from './utils.ts';
 
 export { assistsPresetJson } from './assists.ts';
 export type { LaunchOptions, RaceUriOptions } from './types.ts';
@@ -36,25 +35,7 @@ export const buildRaceUri = (raceIni: string, { assistsPreset }: RaceUriOptions 
   return `acmanager://race/config?${params.join('&')}`;
 };
 
-/**
- * Builds the URI that passes the INI by path instead of inline.
- *
- * The file must still exist when CM handles the request.
- * @param iniPath Absolute path to a race.ini
- * @returns An acmanager:// URI
- */
-export const buildRaceUriFromFile = (iniPath: string): string => (
-  `acmanager://race/config?configFile=${encodeURIComponent(iniPath)}`
-);
 
-/**
- * Chains several acmanager commands into one batch call.
- * @param commands The commands to run in order
- * @returns An acmanager:// URI
- */
-export const buildBatchUri = (commands: string[]): string => (
-  `acmanager://batch?cmds=${encodeURIComponent(toCutBase64(commands.join('\n')))}`
-);
 
 /**
  * Spawns Content Manager with the URI as a single argv entry.
@@ -85,35 +66,3 @@ export const launchUri = (
   child.on('spawn', () => resolve(child));
   child.on('error', reject);
 });
-
-/**
- * Renders assists in the layout AC writes to cfg/assists.ini.
- *
- * Not what the URI carries - that is `assistsPresetJson` - but it is the same
- * values in the form AC and Content Manager write them to disk, which is what
- * makes `cfg/assists.ini` readable as a check on what actually arrived.
- * @param assists The assists to render, defaulting to AC's own defaults
- * @returns INI text with CRLF line endings
- */
-export const buildAssistsIni = (assists: Assists = {}): string => {
-  const a = resolveAssists(assists);
-
-  return [
-    '[ASSISTS]',
-    `IDEAL_LINE=${assistFlag(a.idealLine)}`,
-    `AUTO_BLIP=${assistFlag(a.autoBlip)}`,
-    `STABILITY_CONTROL=${a.stabilityControl}`,
-    `AUTO_BRAKE=${assistFlag(a.autoBrake)}`,
-    `AUTO_SHIFTER=${assistFlag(a.autoShifter)}`,
-    `ABS=${a.abs}`,
-    `TRACTION_CONTROL=${a.tractionControl}`,
-    `AUTO_CLUTCH=${assistFlag(a.autoClutch)}`,
-    `VISUALDAMAGE=${assistFlag(a.visualDamage)}`,
-    `DAMAGE=${a.damage}`,
-    `FUEL_RATE=${a.fuelRate}`,
-    `TYRE_WEAR=${a.tyreWear}`,
-    `TYRE_BLANKETS=${assistFlag(a.tyreBlankets)}`,
-    `SLIPSTREAM=${a.slipstream}`,
-    '',
-  ].join('\r\n');
-};

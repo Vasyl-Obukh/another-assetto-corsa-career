@@ -14,7 +14,7 @@ const writeFileMock = jest.mocked(writeFile);
 const rmMock = jest.mocked(rm);
 const mkdirMock = jest.mocked(mkdir);
 
-const TEST_MODE = '--enable-race-ini-test-mode';
+const HIDE_CANCEL = '--hide-race-cancel-button';
 const SKIP_RESULTS = '--skip-all-results';
 const THEIRS = '--something-of-theirs';
 
@@ -64,7 +64,7 @@ describe('core/cm-arguments/cm-arguments', () => {
 
     // Without the guard the join yields a relative path, and the file would be
     // read from - and written into - whatever the working directory happens to
-    // be, which is the repo itself when the CLI runs.
+    // be.
     it('throws rather than resolving into the working directory', () => {
       delete process.env.LOCALAPPDATA;
       expect(() => cmArgumentsFile()).toThrow('LOCALAPPDATA is not set');
@@ -77,11 +77,11 @@ describe('core/cm-arguments/cm-arguments', () => {
     });
 
     it('reports which of our flags the file holds', async () => {
-      file = `${SKIP_RESULTS}\r\n${TEST_MODE}\r\n`;
+      file = `${SKIP_RESULTS}\r\n${HIDE_CANCEL}\r\n`;
 
       expect(await readCmArguments()).toMatchObject({
         exists: true,
-        enabled: [SKIP_RESULTS, TEST_MODE],
+        enabled: [SKIP_RESULTS, HIDE_CANCEL],
       });
     });
 
@@ -110,24 +110,24 @@ describe('core/cm-arguments/cm-arguments', () => {
 
   describe('setCmArgument', () => {
     it('creates the file when there is none, which is the ordinary case', async () => {
-      await setCmArgument(TEST_MODE, true);
+      await setCmArgument(HIDE_CANCEL, true);
 
       expect(mkdirMock).toHaveBeenCalled();
-      expect(written()).toBe(`${TEST_MODE}\r\n`);
+      expect(written()).toBe(`${HIDE_CANCEL}\r\n`);
     });
 
     it('appends to what is already there, leaving other lines alone', async () => {
       file = `${THEIRS}\r\n`;
 
-      await setCmArgument(TEST_MODE, true);
+      await setCmArgument(HIDE_CANCEL, true);
 
-      expect(written()).toBe(`${THEIRS}\r\n${TEST_MODE}\r\n`);
+      expect(written()).toBe(`${THEIRS}\r\n${HIDE_CANCEL}\r\n`);
     });
 
     it('removes only its own line', async () => {
-      file = `${THEIRS}\r\n${TEST_MODE}\r\n--another\r\n`;
+      file = `${THEIRS}\r\n${HIDE_CANCEL}\r\n--another\r\n`;
 
-      await setCmArgument(TEST_MODE, false);
+      await setCmArgument(HIDE_CANCEL, false);
 
       expect(written()).toBe(`${THEIRS}\r\n--another\r\n`);
     });
@@ -135,9 +135,9 @@ describe('core/cm-arguments/cm-arguments', () => {
     // A flag's presence is the whole state, so turning it off has to put the
     // folder back as it was found rather than leave an empty file behind.
     it('removes the file when nothing but our own flag was in it', async () => {
-      file = `${TEST_MODE}\r\n`;
+      file = `${HIDE_CANCEL}\r\n`;
 
-      await setCmArgument(TEST_MODE, false);
+      await setCmArgument(HIDE_CANCEL, false);
 
       expect(rmMock).toHaveBeenCalledWith(expect.stringContaining('Arguments.txt'), { force: true });
       expect(writeFileMock).not.toHaveBeenCalled();
@@ -146,17 +146,17 @@ describe('core/cm-arguments/cm-arguments', () => {
     it('follows the line endings the file already uses', async () => {
       file = `${THEIRS}\n`;
 
-      await setCmArgument(TEST_MODE, true);
+      await setCmArgument(HIDE_CANCEL, true);
 
-      expect(written()).toBe(`${THEIRS}\n${TEST_MODE}\n`);
+      expect(written()).toBe(`${THEIRS}\n${HIDE_CANCEL}\n`);
     });
 
     // Writing anyway would only move the flag to the end of a file we are a
     // guest in, for no gain.
     it('writes nothing when the flag is already how it was asked for', async () => {
-      file = `${TEST_MODE}\r\n`;
+      file = `${HIDE_CANCEL}\r\n`;
 
-      await setCmArgument(TEST_MODE, true);
+      await setCmArgument(HIDE_CANCEL, true);
 
       expect(writeFileMock).not.toHaveBeenCalled();
       expect(rmMock).not.toHaveBeenCalled();
@@ -165,7 +165,7 @@ describe('core/cm-arguments/cm-arguments', () => {
     it('writes nothing when asked to remove a flag that is not there', async () => {
       file = `${THEIRS}\r\n`;
 
-      await setCmArgument(TEST_MODE, false);
+      await setCmArgument(HIDE_CANCEL, false);
 
       expect(writeFileMock).not.toHaveBeenCalled();
       expect(rmMock).not.toHaveBeenCalled();
@@ -174,9 +174,9 @@ describe('core/cm-arguments/cm-arguments', () => {
     it('does not leave a blank line where the trailing newline was', async () => {
       file = `${SKIP_RESULTS}\r\n\r\n\r\n`;
 
-      await setCmArgument(TEST_MODE, true);
+      await setCmArgument(HIDE_CANCEL, true);
 
-      expect(written()).toBe(`${SKIP_RESULTS}\r\n${TEST_MODE}\r\n`);
+      expect(written()).toBe(`${SKIP_RESULTS}\r\n${HIDE_CANCEL}\r\n`);
     });
 
     // main writes this file, so a renderer bug must not be able to append an
@@ -188,12 +188,12 @@ describe('core/cm-arguments/cm-arguments', () => {
     });
 
     it('answers with what the file holds afterwards, read back', async () => {
-      expect(await setCmArgument(TEST_MODE, true)).toMatchObject({
+      expect(await setCmArgument(HIDE_CANCEL, true)).toMatchObject({
         exists: true,
-        enabled: [TEST_MODE],
+        enabled: [HIDE_CANCEL],
       });
 
-      expect(await setCmArgument(TEST_MODE, false)).toMatchObject({
+      expect(await setCmArgument(HIDE_CANCEL, false)).toMatchObject({
         exists: false,
         enabled: [],
       });
@@ -205,8 +205,8 @@ describe('core/cm-arguments/cm-arguments', () => {
       const before = `${THEIRS}\r\n--another\r\n`;
       file = before;
 
-      await setCmArgument(TEST_MODE, true);
-      await setCmArgument(TEST_MODE, false);
+      await setCmArgument(HIDE_CANCEL, true);
+      await setCmArgument(HIDE_CANCEL, false);
 
       expect(file).toBe(before);
     });
