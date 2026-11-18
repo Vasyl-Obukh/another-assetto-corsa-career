@@ -23,6 +23,9 @@ npm-debug.log*
 .env
 .env.local
 
+# Local Claude Code skills and settings
+.claude/
+
 # Editors and OS
 .idea/
 .vscode/
