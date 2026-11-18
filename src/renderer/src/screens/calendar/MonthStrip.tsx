@@ -59,12 +59,15 @@ export const MonthStrip = ({
             onClick={() => onPick(month.start)}
           >
             <span className="truncate first-letter:uppercase">{formatMonthShort(month.start)}</span>
-            <span className="flex h-1 gap-0.5">
+            {/* A busy month has a race nearly every day, more ticks than a
+                narrow button holds: they thin to share its width rather than
+                spill into the next month. */}
+            <span className="flex h-1 w-full max-w-max justify-center gap-px overflow-hidden">
               {month.ticks.map((tick, at) => (
                 // Ticks are positional - a month's race days in order - and
                 // carry nothing that could identify one apart from its place.
                 // eslint-disable-next-line react/no-array-index-key
-                <span key={at} className={cn('w-1.5 rounded-full', MONTH_TICK[tick])} />
+                <span key={at} className={cn('w-1.5 min-w-0 rounded-full', MONTH_TICK[tick])} />
               ))}
             </span>
           </button>
